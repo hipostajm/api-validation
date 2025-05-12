@@ -25,13 +25,13 @@ def get_data(date: str, hour: int) -> dict:
     # Process hourly data. The order of variables needs to be the same as requested.
     hourly = response.Hourly()
     return {
-            "temperature": hourly.Variables(0).ValuesAsNumpy()[hour],
-            "rain": hourly.Variables(1).ValuesAsNumpy()[hour], 
-            "apparent temperature": hourly.Variables(2).ValuesAsNumpy()[hour], 
-            "pressure": hourly.Variables(3).ValuesAsNumpy()[hour]
+            "temperature": float(hourly.Variables(0).ValuesAsNumpy()[hour]),
+            "rain": float(hourly.Variables(1).ValuesAsNumpy()[hour]), 
+            "apparent temperature": float(hourly.Variables(2).ValuesAsNumpy()[hour]), 
+            "pressure": float(hourly.Variables(3).ValuesAsNumpy()[hour])
     }
 
-IP = ""
+IP = "http://127.0.0.1:5000"
 
 while True:
     command = input("> ")
@@ -54,9 +54,23 @@ quit -> quits""")
             
             case ["save", date, hour]:
                 data = get_data(date, int(hour))
-                response = requests.post(url=IP+"/", json={"data": data})            
+                for k, v in data.items():
+                    print(f"{k}: {v}")
+                    
+                data.update({"date": date, "hour": int(hour)})
+                
+                response = requests.post(url=IP+"/", json=data)            
+                
+                print(f"sucess: {response.json()["sucess"]}")
                 
             case ["get", date, hour]:
-                ...
+                response = requests.get(url=IP+"/", json = {"date": date, "hour": int(hour)})
+                
+                if response.json()["sucess"]:
+                    data = response.json()["data"]
+                    for k, v in data.items():
+                        print(f"{k}: {v}")
+                else:
+                    print("idk smf happend")
             
         
